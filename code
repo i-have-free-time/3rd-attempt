@@ -1,0 +1,214 @@
+<script>
+
+let playerCount = 0;
+
+const gradients = [
+"linear-gradient(135deg,#ff8c42,#ffb347)",
+"linear-gradient(135deg,#ff4ecd,#ff9ce3)",
+"linear-gradient(135deg,#6a5cff,#9d8bff)",
+"linear-gradient(135deg,#3db8ff,#88dcff)",
+"linear-gradient(135deg,#34d399,#8fffd2)",
+"linear-gradient(135deg,#ffe066,#ffd43b)"
+];
+
+let gradientIndex = 0;
+
+const premadeGroup = [
+"Start a dance circle and go stoopid for whoever joins",
+"Start a conga line",
+"Swap items with people of the opposite sex in the group and take a group selfie where everyone poses like the opposite sex"
+];
+
+const premadeIndividual = [
+"Ask bartender for number even if they’re clapped",
+"Text the most recent guy in ur dms wyd tonight",
+"Dance like a viral video in the middle of the dangler",
+"Ask the bartender for their number",
+"Join a random group on the dance floor",
+"Ask a stranger of the opposite sex to pour a drink down ur mouth",
+"Scroll through ur insta stories and dm a compliment",
+"Narrate a vlog of your current experience for two minutes",
+"Take a photo with another bartender",
+"Order the next round dramatically"
+];
+
+let groupDares = [];
+let individualDares = [];
+
+let customDares = [];
+let customIndex = 1;
+
+let previousDare = null;
+let currentDare = null;
+
+function shiftColors(){
+
+    gradientIndex =
+        (gradientIndex + 1) % gradients.length;
+
+    document.body.style.background =
+        gradients[gradientIndex];
+}
+
+function selectPremade(){
+
+    individualDares = [...premadeIndividual];
+    groupDares = [...premadeGroup];
+
+    document.getElementById("modeScreen").classList.add("hidden");
+    document.getElementById("playerScreen").classList.remove("hidden");
+}
+
+function openCustom(){
+
+    document.getElementById("modeScreen").classList.add("hidden");
+    document.getElementById("customScreen").classList.remove("hidden");
+}
+
+function nextDare(){
+
+    shiftColors();
+
+    const input = document.getElementById("dareInput");
+
+    if(input.value.trim() !== ""){
+        customDares.push(input.value.trim());
+    }
+
+    input.value = "";
+
+    customIndex++;
+
+    document.getElementById("dareTitle").innerText =
+        "Dare " + customIndex;
+}
+
+function completeCustom(){
+
+    const input = document.getElementById("dareInput");
+
+    if(input.value.trim() !== ""){
+        customDares.push(input.value.trim());
+    }
+
+    individualDares = [...customDares];
+    groupDares = [];
+
+    document.getElementById("customScreen").classList.add("hidden");
+    document.getElementById("playerScreen").classList.remove("hidden");
+}
+
+function startGame(){
+
+    playerCount =
+        parseInt(document.getElementById("players").value);
+
+    if(!playerCount || playerCount < 1){
+        alert("Enter valid players");
+        return;
+    }
+
+    document.getElementById("playerScreen").classList.add("hidden");
+    document.getElementById("gameScreen").classList.remove("hidden");
+}
+
+function generateDare(){
+
+    if(individualDares.length === 0 &&
+       groupDares.length === 0){
+
+        document.getElementById("gameScreen")
+            .classList.add("hidden");
+
+        document.getElementById("endScreen")
+            .classList.remove("hidden");
+
+        return;
+    }
+
+    shiftColors();
+
+    previousDare = currentDare;
+
+    const pick =
+        Math.floor(Math.random() * (playerCount + 1)) + 1;
+
+    let html = "";
+
+    if(pick === playerCount + 1 &&
+       groupDares.length > 0){
+
+        const i =
+            Math.floor(Math.random() * groupDares.length);
+
+        const dare =
+            groupDares.splice(i,1)[0];
+
+        currentDare = `
+            <div class="playerTag">
+                👥 GROUP
+            </div>
+
+            ${dare}
+        `;
+    }
+
+    else{
+
+        if(individualDares.length === 0){
+            generateDare();
+            return;
+        }
+
+        const i =
+            Math.floor(Math.random() * individualDares.length);
+
+        const dare =
+            individualDares.splice(i,1)[0];
+
+        currentDare = `
+            <div class="playerTag">
+                🎯 Player ${pick}
+            </div>
+
+            ${dare}
+        `;
+    }
+
+    document.getElementById("result")
+        .innerHTML = currentDare;
+
+    document.getElementById("result")
+        .classList.remove("hidden");
+}
+
+function showPrevious(){
+
+    if(previousDare){
+
+        shiftColors();
+
+        document.getElementById("result")
+            .innerHTML = previousDare;
+    }
+}
+
+function restartGame(){
+
+    document.getElementById("endScreen")
+        .classList.add("hidden");
+
+    document.getElementById("modeScreen")
+        .classList.remove("hidden");
+
+    customDares = [];
+    customIndex = 1;
+
+    previousDare = null;
+    currentDare = null;
+
+    document.getElementById("dareTitle")
+        .innerText = "Dare 1";
+}
+
+</script>
