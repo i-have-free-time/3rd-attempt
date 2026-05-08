@@ -1,0 +1,533 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Dare Generator</title>
+
+<style>
+
+*{
+    margin:0;
+    padding:0;
+    box-sizing:border-box;
+    font-family:Arial, sans-serif;
+}
+
+body{
+    height:100vh;
+    overflow:hidden;
+    display:flex;
+    justify-content:center;
+    align-items:center;
+    background:linear-gradient(135deg,#ff8c42,#ffb347);
+    transition:background 1s ease;
+}
+
+.container{
+    width:90%;
+    max-width:430px;
+    background:white;
+    border-radius:30px;
+    padding:30px;
+    text-align:center;
+    box-shadow:0 15px 40px rgba(0,0,0,0.15);
+    animation:popIn .5s ease;
+}
+
+@keyframes popIn{
+    from{
+        transform:scale(.8);
+        opacity:0;
+    }
+    to{
+        transform:scale(1);
+        opacity:1;
+    }
+}
+
+.hidden{
+    display:none;
+}
+
+h1{
+    color:#ff7a00;
+    margin-bottom:15px;
+}
+
+button{
+    border:none;
+    background:#ff7a00;
+    color:white;
+    padding:14px 22px;
+    border-radius:18px;
+    font-size:16px;
+    margin-top:15px;
+    cursor:pointer;
+    transition:.2s;
+}
+
+button:hover{
+    transform:scale(1.05);
+}
+
+input, textarea{
+    width:100%;
+    padding:14px;
+    border-radius:14px;
+    border:2px solid #ff7a00;
+    margin-top:10px;
+    font-size:16px;
+}
+
+textarea{
+    height:110px;
+    resize:none;
+}
+
+.dice{
+    font-size:95px;
+    cursor:pointer;
+    animation:bounce 1.5s infinite;
+    user-select:none;
+}
+
+@keyframes bounce{
+    0%,100%{
+        transform:translateY(0);
+    }
+
+    50%{
+        transform:translateY(-12px);
+    }
+}
+
+.resultBox{
+    margin-top:25px;
+    background:#fff5ec;
+    border-radius:24px;
+    padding:22px;
+    font-size:20px;
+    line-height:1.4;
+    animation:fadeUp .4s ease;
+    min-height:140px;
+}
+
+@keyframes fadeUp{
+    from{
+        opacity:0;
+        transform:translateY(20px);
+    }
+    to{
+        opacity:1;
+        transform:translateY(0);
+    }
+}
+
+.playerTag{
+    font-size:28px;
+    font-weight:bold;
+    margin-bottom:12px;
+}
+
+.small{
+    margin-top:12px;
+    opacity:.7;
+    font-size:14px;
+}
+
+.buttonRow{
+    display:flex;
+    gap:10px;
+    justify-content:center;
+    flex-wrap:wrap;
+}
+
+</style>
+</head>
+
+<body>
+
+<div class="container">
+
+    <!-- HOME SCREEN -->
+    <div id="modeScreen">
+
+        <h1>🎉 Dare Generator</h1>
+
+        <button onclick="selectPremade()">
+            Use Pre-Made Dares
+        </button>
+
+        <br>
+
+        <button onclick="openCustom()">
+            Create Custom Dares
+        </button>
+
+    </div>
+
+    <!-- CUSTOM DARES -->
+    <div id="customScreen" class="hidden">
+
+        <h1 id="dareTitle">Dare 1</h1>
+
+        <textarea
+            id="dareInput"
+            placeholder="Type your dare here..."
+        ></textarea>
+
+        <div class="buttonRow">
+
+            <button onclick="nextDare()">
+                Next Dare
+            </button>
+
+            <button onclick="completeCustom()">
+                Complete
+            </button>
+
+        </div>
+
+    </div>
+
+    <!-- PLAYER COUNT -->
+    <div id="playerScreen" class="hidden">
+
+        <h1>How many players?</h1>
+
+        <input
+            type="number"
+            id="players"
+            min="1"
+            placeholder="Enter number"
+        >
+
+        <button onclick="startGame()">
+            Start
+        </button>
+
+    </div>
+
+    <!-- GAME SCREEN -->
+    <div id="gameScreen" class="hidden">
+
+        <div class="dice" onclick="generateDare()">
+            🎲
+        </div>
+
+        <div id="result" class="resultBox hidden"></div>
+
+        <div class="buttonRow">
+
+            <button onclick="showPrevious()">
+                Previous Dare
+            </button>
+
+            <button onclick="generateDare()">
+                Next Dare
+            </button>
+
+        </div>
+
+    </div>
+
+    <!-- END SCREEN -->
+    <div id="endScreen" class="hidden">
+
+        <h1>✨ No More Dares!</h1>
+
+        <p style="margin-top:15px; font-size:18px;">
+            Hope you enjoyed 🎉
+        </p>
+
+        <button onclick="restartGame()">
+            Back To Home
+        </button>
+
+    </div>
+
+</div>
+
+<script>
+
+let playerCount = 0;
+
+const gradients = [
+
+"linear-gradient(135deg,#ff8c42,#ffb347)",
+
+"linear-gradient(135deg,#ff4ecd,#ff9ce3)",
+
+"linear-gradient(135deg,#6a5cff,#9d8bff)",
+
+"linear-gradient(135deg,#3db8ff,#88dcff)",
+
+"linear-gradient(135deg,#34d399,#8fffd2)",
+
+"linear-gradient(135deg,#ffe066,#ffd43b)"
+
+];
+
+let gradientIndex = 0;
+
+function shiftColors(){
+
+    gradientIndex =
+        (gradientIndex + 1) % gradients.length;
+
+    document.body.style.background =
+        gradients[gradientIndex];
+}
+
+const premadeGroup = [
+
+"Start a dance circle and go stoopid for whoever joins",
+
+"Start a conga line",
+
+"Swap items with people of the opposite sex in the group and take a group selfie where everyone poses like the opposite sex"
+
+];
+
+const premadeIndividual = [
+
+"Ask bartender for number even if they’re clapped",
+
+"Text the most recent guy in ur dms wyd tonight",
+
+"Dance like a viral video in the middle of the dangler",
+
+"Ask the bartender for their number",
+
+"Join a random group on the dance floor",
+
+"Ask a stranger of the opposite sex to pour a drink down ur mouth",
+
+"Scroll through ur insta stories and dm a compliment",
+
+"Narrate a vlog of your current experience for two minutes",
+
+"Take a photo with another bartender",
+
+"Order the next round dramatically"
+
+];
+
+let groupDares = [];
+let individualDares = [];
+
+let customDares = [];
+
+let customIndex = 1;
+
+let previousDare = null;
+let currentDare = null;
+
+function selectPremade(){
+
+    individualDares = [...premadeIndividual];
+    groupDares = [...premadeGroup];
+
+    document.getElementById("modeScreen")
+        .classList.add("hidden");
+
+    document.getElementById("playerScreen")
+        .classList.remove("hidden");
+}
+
+function openCustom(){
+
+    document.getElementById("modeScreen")
+        .classList.add("hidden");
+
+    document.getElementById("customScreen")
+        .classList.remove("hidden");
+}
+
+function nextDare(){
+
+    shiftColors();
+
+    const input =
+        document.getElementById("dareInput");
+
+    if(input.value.trim() !== ""){
+
+        customDares.push(input.value.trim());
+    }
+
+    input.value = "";
+
+    customIndex++;
+
+    document.getElementById("dareTitle")
+        .innerText = "Dare " + customIndex;
+}
+
+function completeCustom(){
+
+    const input =
+        document.getElementById("dareInput");
+
+    if(input.value.trim() !== ""){
+
+        customDares.push(input.value.trim());
+    }
+
+    individualDares = [...customDares];
+
+    groupDares = [];
+
+    document.getElementById("customScreen")
+        .classList.add("hidden");
+
+    document.getElementById("playerScreen")
+        .classList.remove("hidden");
+}
+
+function startGame(){
+
+    playerCount =
+        parseInt(
+            document.getElementById("players").value
+        );
+
+    if(!playerCount || playerCount < 1){
+
+        alert("Enter valid players");
+
+        return;
+    }
+
+    document.getElementById("playerScreen")
+        .classList.add("hidden");
+
+    document.getElementById("gameScreen")
+        .classList.remove("hidden");
+}
+
+function generateDare(){
+
+    if(individualDares.length === 0 &&
+       groupDares.length === 0){
+
+        document.getElementById("gameScreen")
+            .classList.add("hidden");
+
+        document.getElementById("endScreen")
+            .classList.remove("hidden");
+
+        return;
+    }
+
+    shiftColors();
+
+    previousDare = currentDare;
+
+    const pick =
+        Math.floor(
+            Math.random() * (playerCount + 1)
+        ) + 1;
+
+    // GROUP
+    if(pick === playerCount + 1 &&
+       groupDares.length > 0){
+
+        const i =
+            Math.floor(
+                Math.random() * groupDares.length
+            );
+
+        const dare =
+            groupDares.splice(i,1)[0];
+
+        currentDare = `
+
+            <div class="playerTag">
+                👥 GROUP
+            </div>
+
+            ${dare}
+
+        `;
+    }
+
+    // PLAYER
+    else{
+
+        if(individualDares.length === 0){
+
+            generateDare();
+
+            return;
+        }
+
+        const i =
+            Math.floor(
+                Math.random() * individualDares.length
+            );
+
+        const dare =
+            individualDares.splice(i,1)[0];
+
+        currentDare = `
+
+            <div class="playerTag">
+                🎯 Player ${pick}
+            </div>
+
+            ${dare}
+
+        `;
+    }
+
+    const result =
+        document.getElementById("result");
+
+    result.innerHTML = currentDare;
+
+    result.classList.remove("hidden");
+}
+
+function showPrevious(){
+
+    if(previousDare){
+
+        shiftColors();
+
+        document.getElementById("result")
+            .innerHTML = previousDare;
+    }
+}
+
+function restartGame(){
+
+    document.getElementById("endScreen")
+        .classList.add("hidden");
+
+    document.getElementById("modeScreen")
+        .classList.remove("hidden");
+
+    customDares = [];
+
+    customIndex = 1;
+
+    previousDare = null;
+
+    currentDare = null;
+
+    document.getElementById("dareTitle")
+        .innerText = "Dare 1";
+
+    document.getElementById("players").value = "";
+
+    document.getElementById("dareInput").value = "";
+
+    document.getElementById("result").innerHTML = "";
+}
+
+</script>
+
+</body>
+</html>
